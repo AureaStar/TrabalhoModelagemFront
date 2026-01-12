@@ -1,62 +1,90 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
 
 export default function ManageOrderPage() {
     const params = useParams();
-    const id = params.id as string;
+    const router = useRouter();
+    const id = params?.id as string;
+    const [pedido, setPedido] = useState<any>(null);
 
-    // Simulação de busca no banco (dados mockados)
-    const orders = [
-        { id: 1, 'Código do Pedido': 'PED001', Cliente: 'Empresa A', Data: '2023-01-01', Status: 'Pendente', Preço: 100.00 },
-        { id: 2, 'Código do Pedido': 'PED002', Cliente: 'Empresa B', Data: '2023-02-01', Status: 'Aprovado', Preço: 200.00 },
-    ];
-
-    const order = orders.find(o => o.id.toString() === id);
+    useEffect(() => {
+        if (!id) return;
+        
+        async function fetchPedido() {
+            try {
+                const res = await fetch(`/api/orders/${id}`);
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    setPedido(null);
+                    return;
+                }
+                
+                setPedido(data);
+            } catch (error) {
+                console.error('Erro ao buscar pedido:', error);
+                setPedido(null);
+            }
+        }
+        fetchPedido();
+    }, [id]);
 
     const fields = [
-        { name: 'codigoPedido', label: 'Código do Pedido', type: 'text' as const, required: true },
-        { name: 'cliente', label: 'Cliente', type: 'select' as const, options: ['Empresa A', 'Empresa B'], required: true },
-        { name: 'data', label: 'Data', type: 'text' as const, required: true },
+        { name: 'codigo_pedido', label: 'Código do Pedido', type: 'text' as const, required: true },
+        { name: 'id_cliente', label: 'ID Cliente', type: 'number' as const, required: true },
         { name: 'status', label: 'Status', type: 'select' as const, options: ['Pendente', 'Aprovado', 'Cancelado'], required: true },
         { name: 'preco', label: 'Preço', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de salvar no banco
-        console.log('Pedido atualizado:', { id, ...data });
-        // Aqui você pode fazer uma chamada para a API
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const res = await fetch(`/api/orders/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/orders');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    const handleDelete = () => {
-        console.log('Excluir pedido:', id);
-        // Aqui você pode fazer uma chamada para a API
+    const handleDelete = async () => {
+        try {
+            const res = await fetch(`/api/orders/${id}`, {
+                method: 'DELETE',
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/orders');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    if (!order) {
-        return (
-            <section>
-                <SetHeader content="Gerenciar Pedido" />
-                <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans">
-                    <main className="w-full py-26">
-                        <p>Pedido não encontrado.</p>
-                    </main>
-                </div>
-            </section>
-        );
-    }
+    if (!pedido) return null;
 
     return (
         <section>
-            <SetHeader content={`Gerenciar Pedido: ${order['Código do Pedido']}`} />
+            <SetHeader content={`Gerenciar Pedido: ${pedido.codigo_pedido}`} />
             <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans text-black">
                 <main className="w-full py-26">
                     <GenericForm
                         mode="edit"
                         fields={fields}
-                        initialData={{ codigoPedido: order['Código do Pedido'], cliente: order.Cliente, data: order.Data, status: order.Status, preco: order.Preço }}
+                        initialData={{ codigo_pedido: pedido.codigo_pedido, id_cliente: pedido.id_cliente, status: pedido.status, preco: pedido.preco }}
                         onSubmit={handleSubmit}
                         onDelete={handleDelete}
                     />
