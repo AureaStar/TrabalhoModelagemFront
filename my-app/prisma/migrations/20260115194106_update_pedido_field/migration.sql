@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Pedido" ADD COLUMN     "preco" DOUBLE PRECISION NOT NULL DEFAULT 0;

@@ -1,15 +1,46 @@
 'use client';
 
 import Table from '@/components/table';
+import { useEffect, useState } from 'react';
 import SetHeader from '../../components/header/SetHeader';
+interface Cliente {
+    id: number;
+    instituicao: string;
+    cnpj: string;
+    telefone: string;
+    responsavel: string;
+}
+
 
 export default function CustomersPage() {
+    const [clientes, setClientes] = useState<Cliente[]>([]);
+
+    useEffect(() => {
+        async function fetchClientes() {
+            try {
+                const response = await fetch('/api/customers');
+                if (!response.ok) throw new Error('Erro ao buscar clientes');
+                
+                const data = await response.json();
+                setClientes(data);
+            } catch (error) {
+                console.error('Erro ao buscar clientes:', error);
+            }
+        }
+
+        fetchClientes();
+    }, []);
+
     const headers = ['Instituição', 'CNPJ', 'Telefone', 'Responsável'];
-    const data = [
-        { id: 1, Instituição: 'Empresa A', CNPJ: '12345678000100', Telefone: '111111111', Responsável: 'João' },
-        { id: 2, Instituição: 'Empresa B', CNPJ: '98765432000199', Telefone: '222222222', Responsável: 'Maria' },
-        { id: 3, Instituição: 'Empresa C', CNPJ: '55566677000188', Telefone: '333333333', Responsável: 'Pedro' },
-    ];
+    
+    // Mapear os dados do banco para o formato da tabela
+    const data = clientes.map(cliente => ({
+        id: cliente.id,
+        'Instituição': cliente.instituicao,
+        'CNPJ': cliente.cnpj,
+        'Telefone': cliente.telefone,
+        'Responsável': cliente.responsavel
+    }));
 
     return (
         <section>
