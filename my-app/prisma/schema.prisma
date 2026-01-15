@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model Cliente {
+  id        Int      @id @default(autoincrement())
+  instituicao String @unique
+  cnpj String   @unique
+  telefone  String  
+  responsavel String 
+  pedidos   Pedido[]
+}
+
+model Pedido{
+  id Int @id @default(autoincrement())
+  codigo_pedido String @unique
+  id_cliente Int
+  cliente    Cliente @relation(fields: [id_cliente], references: [id])
+}
+
+model Produto {
+  id Int @id @default(autoincrement())
+  nome String 
+  codigo_produto String @unique
+  categoria String
+  preco Float
+  id_aquisicao Int
+  aquisicao Aquisicao @relation(fields: [id_aquisicao], references: [id])
+  id_estoque Int
+  estoque Estoque @relation(fields: [id_estoque], references: [id])
+}
+
+model Estoque {
+  id Int @id @default(autoincrement())
+  quantidade Float
+  produtos Produto[]
+}
+
+model Aquisicao {
+  id Int @id @default(autoincrement())
+  id_fornecedor Int
+  fornecedor Fornecedor @relation(fields: [id_fornecedor], references: [id])
+  produtos Produto[]
+  entrada DateTime @default(now())
+  quantidade Float
+  preco Float
+}
+
+model Fornecedor {
+  id Int @id @default(autoincrement())
+  nome String 
+  telefone String
+  aquisicoes Aquisicao[]
+}
