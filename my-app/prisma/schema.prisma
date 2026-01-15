@@ -26,6 +26,9 @@ model Pedido{
   codigo_pedido String @unique
   id_cliente Int
   cliente    Cliente @relation(fields: [id_cliente], references: [id])
+  status String @default("Pendente")
+  data DateTime @default(now())
+  preco Float @default(0)
 }
 
 model Produto {
