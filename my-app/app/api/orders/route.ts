@@ -31,3 +31,15 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const pedido = await prisma.pedido.create({ data });
+    return NextResponse.json(pedido, { status: 201 });
+  } catch (error: any) {
+    console.error('Erro ao criar pedido:', error);
+    const status = error.code === 'P2002' ? 409 : 500;
+    return NextResponse.json({ error: error.message }, { status });
+  }
+}
