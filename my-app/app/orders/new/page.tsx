@@ -1,19 +1,91 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import SetHeader from '@/components/header/SetHeader';
-import GenericForm from '@/components/form/GenericForm';
+
+interface Product {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+}
+
+interface CartItem {
+    product: Product;
+    quantity: number;
+}
+
+const products: Product[] = [
+    { id: 1, name: 'Produto A', category: 'Categoria 1', price: 10.00 },
+    { id: 2, name: 'Produto B', category: 'Categoria 1', price: 15.00 },
+    { id: 3, name: 'Produto C', category: 'Categoria 2', price: 20.00 },
+    { id: 4, name: 'Produto D', category: 'Categoria 2', price: 25.00 },
+    { id: 5, name: 'Produto E', category: 'Categoria 3', price: 30.00 },
+    { id: 6, name: 'Produto F', category: 'Categoria 3', price: 35.00 },
+    { id: 7, name: 'Produto G', category: 'Categoria 1', price: 40.00 },
+    { id: 8, name: 'Produto H', category: 'Categoria 2', price: 45.00 },
+    { id: 9, name: 'Produto I', category: 'Categoria 3', price: 50.00 },
+];
+
+const categories = Array.from(new Set(products.map(p => p.category)));
 
 export default function NewOrderPage() {
-    const fields = [
-        { name: 'codigoPedido', label: 'Código do Pedido', type: 'text' as const, required: true },
-        { name: 'cliente', label: 'Cliente', type: 'select' as const, options: ['Empresa A', 'Empresa B'], required: true },
-        { name: 'data', label: 'Data', type: 'text' as const, required: true },
-        { name: 'status', label: 'Status', type: 'select' as const, options: ['Pendente', 'Aprovado', 'Cancelado'], required: true },
-        { name: 'preco', label: 'Preço', type: 'number' as const, required: true },
-    ];
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [codigoPedido, setCodigoPedido] = useState('');
+    const [cliente, setCliente] = useState('');
+    const [data, setData] = useState('');
+    const [status, setStatus] = useState('');
+    const [desconto, setDesconto] = useState(0);
+
+    const filteredProducts = useMemo(() => {
+        let filtered = products;
+        if (searchQuery) {
+            filtered = filtered.filter(p =>
+                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.category.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        if (selectedCategory) {
+            filtered = filtered.filter(p => p.category === selectedCategory);
+        }
+        return filtered;
+    }, [searchQuery, selectedCategory]);
+
+    const addToCart = (product: Product) => {
+        setCart(prev => {
+            const existing = prev.find(item => item.product.id === product.id);
+            if (existing) {
+                return prev.map(item =>
+                    item.product.id === product.id
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                );
+            } else {
+                return [...prev, { product, quantity: 1 }];
+            }
+        });
+    };
+
+    const updateQuantity = (id: number, delta: number) => {
+        setCart(prev =>
+            prev.map(item =>
+                item.product.id === id
+                    ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+                    : item
+            ).filter(item => item.quantity > 0)
+        );
+    };
+
+    const removeFromCart = (id: number) => {
+        setCart(prev => prev.filter(item => item.product.id !== id));
+    };
+
+    const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
     const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de adicionar no banco
         console.log('Novo pedido:', data);
         // Aqui você pode fazer uma chamada para a API
     };
@@ -27,15 +99,213 @@ export default function NewOrderPage() {
         <section>
             <SetHeader content="Novo Pedido" />
             <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans text-black">
-                <main className="w-full py-26">
-                    <GenericForm
-                        mode="add"
-                        fields={fields}
-                        onSubmit={handleSubmit}
-                        onCancel={handleCancel}
-                    />
+                <main className="w-full py-26 flex gap-4">
+                    {/* Tabela de Produtos */}
+                    <div className="w-1/2 bg-white p-4 rounded-lg shadow">
+                        <h2 className="text-xl font-bold mb-4">Produtos</h2>
+                        <div className="flex gap-4 mb-4">
+                            <input
+                                type="text"
+                                placeholder="Pesquisar produtos..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1 bg-gray-100 border border-gray-300 rounded-t-lg p-2 ring-0 focus:outline-none focus:ring-0 placeholder:text-black"
+                            />
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="bg-gray-100 border border-gray-300 rounded p-2"
+                            >
+                                <option value="">Todas as categorias</option>
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="overflow-y-auto max-h-96">
+                            <table className="w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        <th className="border border-gray-300 p-2">Produto</th>
+                                        <th className="border border-gray-300 p-2">Categoria</th>
+                                        <th className="border border-gray-300 p-2">Preço Un</th>
+                                        <th className="border border-gray-300 p-2">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredProducts.map(product => (
+                                        <tr key={product.id}>
+                                            <td className="border border-gray-300 p-2">{product.name}</td>
+                                            <td className="border border-gray-300 p-2">{product.category}</td>
+                                            <td className="border border-gray-300 p-2">R$ {product.price.toFixed(2)}</td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                <button
+                                                    onClick={() => addToCart(product)}
+                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                                                >
+                                                    +
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Carrinho */}
+                    <div className="w-1/2 bg-white p-4 rounded-lg shadow">
+                        <h2 className="text-xl font-bold mb-4">Carrinho</h2>
+                        <div className="overflow-y-auto max-h-96">
+                            {cart.length === 0 ? (
+                                <p>Carrinho vazio</p>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {cart.map(item => (
+                                        <li key={item.product.id} className="flex justify-between items-center p-2 border rounded">
+                                            <div>
+                                                <p className="font-semibold">{item.product.name}</p>
+                                                <p className="text-sm text-black">R$ {item.product.price.toFixed(2)} cada</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateQuantity(item.product.id, -1)}
+                                                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                                                >
+                                                    -
+                                                </button>
+                                                <span>{item.quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.product.id, 1)}
+                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                                                >
+                                                    +
+                                                </button>
+                                                <button
+                                                    onClick={() => removeFromCart(item.product.id)}
+                                                    className="bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 ml-2"
+                                                >
+                                                    Remover
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t">
+                            <p className="text-lg font-bold">Total: R$ {totalPrice.toFixed(2)}</p>
+                            {cart.length > 0 && (
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                >
+                                    Finalizar Pedido
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </main>
             </div>
+            {isModalOpen && (
+                <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white p-4 rounded-lg shadow border border-gray-300 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold mb-4">Conferir Pedido</h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-black">Código do Pedido</label>
+                                <input
+                                    type="text"
+                                    value={codigoPedido}
+                                    onChange={(e) => setCodigoPedido(e.target.value)}
+                                    className="w-full bg-gray-100 border border-gray-300 rounded p-2 text-black"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-black">Cliente</label>
+                                <select
+                                    value={cliente}
+                                    onChange={(e) => setCliente(e.target.value)}
+                                    className="w-full bg-gray-100 border border-gray-300 rounded p-2 text-black"
+                                    required
+                                >
+                                    <option value="">Selecione um cliente</option>
+                                    <option value="Empresa A">Empresa A</option>
+                                    <option value="Empresa B">Empresa B</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-black">Data</label>
+                                <input
+                                    type="date"
+                                    value={data}
+                                    onChange={(e) => setData(e.target.value)}
+                                    className="w-full bg-gray-100 border border-gray-300 rounded p-2 text-black"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-black">Status</label>
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="w-full bg-gray-100 border border-gray-300 rounded p-2 text-black"
+                                    required
+                                >
+                                    <option value="">Selecione o status</option>
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Aprovado">Aprovado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-black">Desconto</label>
+                                <input
+                                    type="number"
+                                    value={desconto}
+                                    onChange={(e) => setDesconto(Number(e.target.value))}
+                                    className="w-full bg-gray-100 border border-gray-300 rounded p-2 text-black"
+                                    min="0"
+                                />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-black">Itens do Pedido:</h3>
+                                <ul className="space-y-1">
+                                    {cart.map(item => (
+                                        <li key={item.product.id} className="text-sm text-black">
+                                            {item.product.name} - {item.quantity} x R$ {item.product.price.toFixed(2)} = R$ {(item.product.price * item.quantity).toFixed(2)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div>
+                                <p className="text-black">Total sem desconto: R$ {totalPrice.toFixed(2)}</p>
+                                <p className="text-black">Total com desconto: R$ {(totalPrice - desconto).toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-4 mt-4">
+                            <button
+                                onClick={() => {
+                                    const finalPrice = totalPrice - desconto;
+                                    handleSubmit({ codigoPedido, cliente, data, status, desconto, items: cart, totalPrice: finalPrice });
+                                    setIsModalOpen(false);
+                                    // Reset states or redirect
+                                }}
+                                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                            >
+                                Confirmar Pedido
+                            </button>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
