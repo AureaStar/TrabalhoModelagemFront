@@ -10,6 +10,7 @@ export async function GET() {
         codigo_produto: true,
         categoria: true,
         preco: true,
+        unidade: true,
       },
       orderBy: {
         id: 'desc'

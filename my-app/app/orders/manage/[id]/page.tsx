@@ -42,10 +42,14 @@ export default function ManageOrderPage() {
 
     const handleSubmit = async (data: Record<string, any>) => {
         try {
+            const payload = {
+                ...data,
+                preco: parseFloat(data.preco.replace(',', '.'))
+            };
             const res = await fetch(`/api/orders/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify(payload),
             });
 
             const result = await res.json();

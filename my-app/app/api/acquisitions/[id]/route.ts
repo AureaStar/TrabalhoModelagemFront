@@ -9,6 +9,22 @@ export async function GET(
     const { id } = await params;
     const aquisicao = await prisma.aquisicao.findUnique({
       where: { id: parseInt(id) },
+      include: {
+        produtos: {
+          select: {
+            id: true,
+            nome: true,
+            preco: true,
+            unidade: true
+          }
+        },
+        fornecedor: {
+          select: {
+            id: true,
+            nome: true
+          }
+        }
+      }
     });
 
     if (!aquisicao) {

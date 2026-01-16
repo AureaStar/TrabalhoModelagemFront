@@ -50,7 +50,6 @@ export default function CustomersPage() {
                     <Table
                         headers={headers}
                         data={data}
-                        onAdd={() => console.log('Adicionar novo cliente')}
                         onManage={(item) => console.log('Gerenciar cliente:', item)}
                         routes="/customers"
                     />

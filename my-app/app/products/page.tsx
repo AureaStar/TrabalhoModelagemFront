@@ -50,7 +50,6 @@ export default function ProductsPage() {
                     <Table
                         headers={headers}
                         data={data}
-                        onAdd={() => console.log('Adicionar novo produto')}
                         categories={categories}
                         showFilter={true}
                         onManage={(item) => console.log('Gerenciar produto:', item)}

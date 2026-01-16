@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface Product {
     id: number;
@@ -126,7 +126,7 @@ export default function NewOrderPage() {
                 codigo_pedido: data.codigo_pedido,
                 id_cliente: clienteMap[data.cliente_nome],
                 status: data.status,
-                preco: parseFloat(data.preco)
+                preco: parseFloat(data.preco.replace(',', '.'))
             };
 
             const res = await fetch('/api/orders', {
@@ -148,10 +148,6 @@ export default function NewOrderPage() {
     const cancel = () => {
         window.history.back();
     };
-    const handleSubmit = (data: Record<string, any>) => {
-        console.log('Novo pedido:', data);
-        // Aqui você pode fazer uma chamada para a API
-    };
 
     const handleCancel = () => {
         console.log('Cancelar');
@@ -162,13 +158,6 @@ export default function NewOrderPage() {
         <section>
             <SetHeader content="Novo Pedido" />
             <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans text-black">
-                <main className="w-full py-26">
-                    <GenericForm
-                        mode="add"
-                        fields={fields}
-                        onSubmit={handleSubmit}
-                        onCancel={cancel}
-                    />
                 <main className="w-full py-26 flex gap-4">
                     {/* Tabela de Produtos */}
                     <div className="w-1/2 bg-white p-4 rounded-lg shadow">
@@ -301,8 +290,9 @@ export default function NewOrderPage() {
                                     required
                                 >
                                     <option value="">Selecione um cliente</option>
-                                    <option value="Empresa A">Empresa A</option>
-                                    <option value="Empresa B">Empresa B</option>
+                                    {clienteOptions.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -358,7 +348,7 @@ export default function NewOrderPage() {
                             <button
                                 onClick={() => {
                                     const finalPrice = totalPrice - desconto;
-                                    handleSubmit({ codigoPedido, cliente, data, status, desconto, items: cart, totalPrice: finalPrice });
+                                    handleSubmit({ codigo_pedido: codigoPedido, cliente_nome: cliente, status: status, preco: finalPrice });
                                     setIsModalOpen(false);
                                     // Reset states or redirect
                                 }}

@@ -32,6 +32,7 @@ model Produto {
   codigo_produto String     @unique
   categoria      String
   preco          Float
+  unidade        String     @default("unidades")
   id_aquisicao   Int?
   id_estoque     Int?
   aquisicao      Aquisicao? @relation(fields: [id_aquisicao], references: [id])
@@ -50,13 +51,21 @@ model Aquisicao {
   entrada       DateTime   @default(now())
   quantidade    Float
   preco         Float
+  desconto      Float      @default(0)
+  observacoes   String?
   fornecedor    Fornecedor @relation(fields: [id_fornecedor], references: [id])
   produtos      Produto[]
 }
 
 model Fornecedor {
-  id         Int         @id @default(autoincrement())
-  nome       String
-  telefone   String
-  aquisicoes Aquisicao[]
+  id             Int         @id @default(autoincrement())
+  nome           String
+  email          String      @default("")
+  cpf            String      @default("")
+  telefone       String      @default("")
+  tipo_associado String      @default("")
+  endereco       String      @default("")
+  area_atuacao   String      @default("")
+  status         String      @default("Cooperado")
+  aquisicoes     Aquisicao[]
 }

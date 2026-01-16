@@ -3,11 +3,11 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function ManageSuppliersPage() {
+export default function ManageCustomersPage() {
     const router = useRouter();
 
     useEffect(() => {
-        router.push('/suppliers');
+        router.push('/customers');
     }, [router]);
 
     return null;

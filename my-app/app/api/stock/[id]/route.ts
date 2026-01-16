@@ -9,6 +9,7 @@ export async function GET(
     const { id } = await params;
     const estoque = await prisma.estoque.findUnique({
       where: { id: parseInt(id) },
+      include: { produtos: true },
     });
 
     if (!estoque) {
@@ -37,7 +38,7 @@ export async function PUT(
     const data = await request.json();
     const estoque = await prisma.estoque.update({
       where: { id: parseInt(id) },
-      data,
+      data: { quantidade: data.quantidade },
     });
 
     return NextResponse.json(estoque);

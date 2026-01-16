@@ -50,7 +50,6 @@ export default function StockPage() {
                     <Table
                         headers={headers}
                         data={data}
-                        onAdd={() => console.log('Adicionar novo item ao estoque')}
                         showFilter={true}
                         onManage={(item) => console.log('Gerenciar item do estoque:', item)}
                         routes="/stock"

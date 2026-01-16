@@ -7,7 +7,10 @@ import { useEffect ,useState } from 'react';
 interface Fornecedor {
     id: number;
     nome: string;
+    email: string;
     telefone: string;
+    area_atuacao: string;
+    status: string;
 }
 
 export default function SuppliersPage() {
@@ -29,11 +32,14 @@ export default function SuppliersPage() {
         fetchFornecedores();
     }, []);
     
-    const headers = ['Nome', 'Telefone'];
+    const headers = ['Nome', 'Email', 'Telefone', 'Área de Atuação', 'Status'];
     const data = fornecedores.map(fornecedor => ({
         id: fornecedor.id,
         Nome: fornecedor.nome,
+        Email: fornecedor.email,
         Telefone: fornecedor.telefone,
+        'Área de Atuação': fornecedor.area_atuacao,
+        Status: fornecedor.status,
     }));
 
     return (
@@ -44,7 +50,6 @@ export default function SuppliersPage() {
                     <Table
                         headers={headers}
                         data={data}
-                        onAdd={() => console.log('Adicionar novo fornecedor')}
                         onManage={(item) => console.log('Gerenciar fornecedor:', item)}
                         routes="/suppliers"
                     />

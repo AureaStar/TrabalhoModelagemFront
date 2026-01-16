@@ -10,6 +10,8 @@ export async function GET() {
             select: {
                 id: true,
                 nome: true,
+                preco: true,
+                unidade: true
            }
         },
         fornecedor: {
@@ -20,7 +22,9 @@ export async function GET() {
         },
         entrada: true,
         quantidade: true,
-        preco: true
+        preco: true,
+        desconto: true,
+        observacoes: true
       },
       orderBy: {
         id: 'desc'

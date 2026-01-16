@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 interface FieldConfig {
     name: string;
     label: string;
-    type: 'text' | 'number' | 'select';
+    type: 'text' | 'number' | 'select' | 'date' | 'textarea';
     options?: string[];
     required?: boolean;
 }
@@ -56,6 +56,14 @@ export default function GenericForm({ mode, fields, initialData = {}, onSubmit, 
                                 <option key={option} value={option}>{option}</option>
                             ))}
                         </select>
+                    ) : field.type === 'textarea' ? (
+                        <textarea
+                            value={formData[field.name] || ''}
+                            onChange={(e) => handleChange(field.name, e.target.value)}
+                            className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required={field.required}
+                            rows={4}
+                        />
                     ) : (
                         <input
                             type={field.type}

@@ -55,7 +55,6 @@ export default function AcquisitionsPage() {
           <Table
             headers={headers}
             data={data}
-            onAdd={() => console.log('Adicionar nova aquisição')}
             onManage={(item) => console.log('Gerenciar aquisição:', item)}
             routes="/acquisitions"
           />

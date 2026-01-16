@@ -10,7 +10,7 @@ export default function Dashboard() {
       <SetHeader content={"Dashboard"} />
       <div className="flex px-44 w-full items-center justify-center bg-background-clean font-sans">
         <main className="w-full grid grid-cols-2 grid-rows-4 py-26 gap-x-24 gap-y-8">
-          <Link href="/new-order" className="pl-8 w-full py-6 bg-green flex gap-4 flex-col items-center rounded-md hover:opacity-80 text-lg text-white no-underline row-span-2">
+          <Link href="/orders/new" className="pl-8 w-full py-6 bg-green flex gap-4 flex-col items-center rounded-md hover:opacity-80 text-lg text-white no-underline row-span-2">
             <span className="text-7xl! material-symbols-outlined">
                 add_shopping_cart
             </span>

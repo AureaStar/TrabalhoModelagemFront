@@ -52,7 +52,6 @@ export default function OrdersPage() {
                     <Table
                         headers={headers}
                         data={data}
-                        onAdd={() => console.log('Adicionar novo pedido')}
                         onManage={(item) => console.log('Gerenciar pedido:', item)}
                         routes="/orders"
                     />

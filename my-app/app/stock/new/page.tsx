@@ -38,7 +38,7 @@ export default function NewStockPage() {
             const produto = produtoMap[data.produto_nome];
             
             const payload = {
-                quantidade: parseFloat(data.quantidade),
+                quantidade: parseFloat(data.quantidade.replace(',', '.')),
                 produtos: {
                     connect: { id: produto.id }
                 }
