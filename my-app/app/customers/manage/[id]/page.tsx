@@ -1,19 +1,37 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
 
 export default function ManageCustomerPage() {
     const params = useParams();
-    const id = params.id as string;
+    const router = useRouter();
+    const id = params?.id as string;
+    const [cliente, setCliente] = useState<any>(null);
 
-    const customers = [
-        { id: 1, Instituição: 'Empresa A', CNPJ: '12345678000100', Telefone: '111111111', Responsável: 'João' },
-        { id: 2, Instituição: 'Empresa B', CNPJ: '98765432000199', Telefone: '222222222', Responsável: 'Maria' },
-    ];
-
-    const customer = customers.find(c => c.id.toString() === id);
+    useEffect(() => {
+        if (!id) return;
+        
+        async function fetchCliente() {
+            try {
+                const res = await fetch(`/api/customers/${id}`);
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    setCliente(null);
+                    return;
+                }
+                
+                setCliente(data);
+            } catch (error) {
+                console.error('Erro ao buscar cliente:', error);
+                setCliente(null);
+            }
+        }
+        fetchCliente();
+    }, [id]);
 
     const fields = [
         { name: 'instituicao', label: 'Instituição', type: 'text' as const, required: true },
@@ -22,39 +40,51 @@ export default function ManageCustomerPage() {
         { name: 'responsavel', label: 'Responsável', type: 'text' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de salvar no banco
-        console.log('Cliente atualizado:', { id, ...data });
-        // Aqui você pode fazer uma chamada para a API
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const res = await fetch(`/api/customers/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/customers');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    const handleDelete = () => {
-        console.log('Excluir cliente:', id);
-        // Aqui você pode fazer uma chamada para a API
+    const handleDelete = async () => {
+        try {
+            const res = await fetch(`/api/customers/${id}`, {
+                method: 'DELETE',
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/customers');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    if (!customer) {
-        return (
-            <section>
-                <SetHeader content="Gerenciar Cliente" />
-                <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans">
-                    <main className="w-full py-26">
-                        <p>Cliente não encontrado.</p>
-                    </main>
-                </div>
-            </section>
-        );
-    }
+    if (!cliente) return null;
 
     return (
         <section>
-            <SetHeader content={`Gerenciar Cliente: ${customer.Instituição}`} />
+            <SetHeader content={`Gerenciar Cliente: ${cliente.instituicao}`} />
             <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans text-black">
                 <main className="w-full py-26">
                     <GenericForm
                         mode="edit"
                         fields={fields}
-                        initialData={{ instituicao: customer.Instituição, cnpj: customer.CNPJ, telefone: customer.Telefone, responsavel: customer.Responsável }}
+                        initialData={{ instituicao: cliente.instituicao, cnpj: cliente.cnpj, telefone: cliente.telefone, responsavel: cliente.responsavel }}
                         onSubmit={handleSubmit}
                         onDelete={handleDelete}
                     />

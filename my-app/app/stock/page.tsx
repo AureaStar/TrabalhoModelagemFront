@@ -2,14 +2,45 @@
 
 import Table from '@/components/table';
 import SetHeader from '../../components/header/SetHeader';
+import { useEffect ,useState } from 'react';
+interface EstoqueItem {
+    id: number;
+    produtos: Array<{
+        id: number;
+        nome: string;
+        categoria: string;
+        preco: number;
+    }>;
+    quantidade: number;
+}
 
 export default function StockPage() {
+    const [estoques, setEstoques] = useState<EstoqueItem[]>([]);
+
+    useEffect(() => {
+        async function fetchEstoques() {
+            try {
+                const response = await fetch('/api/stock');
+                if (!response.ok) throw new Error('Erro ao buscar estoque');
+
+                const data = await response.json();
+                setEstoques(data);
+            } catch (error) {
+                console.error('Erro ao buscar estoque:', error);
+            }
+        }
+
+        fetchEstoques();
+    }, []);
+
     const headers = ['Nome', 'Categoria', 'Quantidade', 'Preço(un)'];
-    const data = [
-        { id: 1, Nome: 'Produto A', Categoria: 'Eletrônicos', Quantidade: 50, 'Preço(un)': 20.00 },
-        { id: 2, Nome: 'Produto B', Categoria: 'Roupas', Quantidade: 30, 'Preço(un)': 15.00 },
-    ];
-    const categories = ['Eletrônicos', 'Roupas', 'Alimentos'];
+    const data = estoques.map(estoque => ({
+        id: estoque.id,
+        Nome: estoque.produtos.map(p => p.nome).join(', '),
+        Categoria: estoque.produtos.map(p => p.categoria).join(', '),
+        Quantidade: estoque.quantidade,
+        'Preço(un)': estoque.produtos.map(p => p.preco).join(', '),
+    }))
 
     return (
         <section>
@@ -20,7 +51,6 @@ export default function StockPage() {
                         headers={headers}
                         data={data}
                         onAdd={() => console.log('Adicionar novo item ao estoque')}
-                        categories={categories}
                         showFilter={true}
                         onManage={(item) => console.log('Gerenciar item do estoque:', item)}
                         routes="/stock"

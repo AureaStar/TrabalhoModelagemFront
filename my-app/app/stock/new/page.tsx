@@ -2,25 +2,67 @@
 
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
+import { useEffect, useState } from 'react';
 
 export default function NewStockPage() {
+    const [produtos, setProdutos] = useState<Array<{ id: number; nome: string; preco: number; categoria: string }>>([]);
+    const [produtoSelecionado, setProdutoSelecionado] = useState<{ preco: number; categoria: string } | null>(null);
+
+    useEffect(() => {
+        async function fetchProdutos() {
+            try {
+                const res = await fetch('/api/products');
+                if (!res.ok) throw new Error('Erro ao buscar produtos');
+                const data = await res.json();
+                setProdutos(data);
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+            }
+        }
+        fetchProdutos();
+    }, []);
+
+    const produtoOptions = produtos.map(p => p.nome);
+    const produtoMap = produtos.reduce((acc, p) => {
+        acc[p.nome] = { id: p.id, preco: p.preco, categoria: p.categoria };
+        return acc;
+    }, {} as Record<string, { id: number; preco: number; categoria: string }>);
+
     const fields = [
-        { name: 'nome', label: 'Nome', type: 'text' as const, required: true },
-        { name: 'categoria', label: 'Categoria', type: 'select' as const, options: ['Eletrônicos', 'Roupas', 'Alimentos'], required: true },
+        { name: 'produto_nome', label: 'Produto', type: 'select' as const, options: produtoOptions, required: true },
         { name: 'quantidade', label: 'Quantidade', type: 'number' as const, required: true },
-        { name: 'precoUn', label: 'Preço(un)', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de adicionar no banco
-        console.log('Novo item no estoque:', data);
-        // Aqui você pode fazer uma chamada para a API
-    };
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const produto = produtoMap[data.produto_nome];
+            
+            const payload = {
+                quantidade: parseFloat(data.quantidade),
+                produtos: {
+                    connect: { id: produto.id }
+                }
+            };
 
-    const handleCancel = () => {
-        console.log('Cancelar');
-        // Aqui você pode redirecionar ou algo
-    };
+            const res = await fetch('/api/stock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            window.history.back();
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    const cancel = () => {
+        window.history.back();
+    }
 
     return (
         <section>
@@ -31,7 +73,7 @@ export default function NewStockPage() {
                         mode="add"
                         fields={fields}
                         onSubmit={handleSubmit}
-                        onCancel={handleCancel}
+                        onCancel={cancel}
                     />
                 </main>
             </div>

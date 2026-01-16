@@ -1,61 +1,90 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
 
 export default function ManageProductPage() {
     const params = useParams();
-    const id = params.id as string;
+    const router = useRouter();
+    const id = params?.id as string;
+    const [produto, setProduto] = useState<any>(null);
 
-    // Simulação de busca no banco (dados mockados)
-    const products = [
-        { id: 1, Nome: 'Produto X', 'Código do Produto': 'PROD001', Categoria: 'Eletrônicos', 'Preço(un)': 25.00 },
-        { id: 2, Nome: 'Produto Y', 'Código do Produto': 'PROD002', Categoria: 'Roupas', 'Preço(un)': 30.00 },
-    ];
-
-    const product = products.find(p => p.id.toString() === id);
+    useEffect(() => {
+        if (!id) return;
+        
+        async function fetchProduto() {
+            try {
+                const res = await fetch(`/api/products/${id}`);
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    setProduto(null);
+                    return;
+                }
+                
+                setProduto(data);
+            } catch (error) {
+                console.error('Erro ao buscar produto:', error);
+                setProduto(null);
+            }
+        }
+        fetchProduto();
+    }, [id]);
 
     const fields = [
         { name: 'nome', label: 'Nome', type: 'text' as const, required: true },
-        { name: 'codigoProduto', label: 'Código do Produto', type: 'text' as const, required: true },
-        { name: 'categoria', label: 'Categoria', type: 'select' as const, options: ['Eletrônicos', 'Roupas', 'Alimentos'], required: true },
-        { name: 'precoUn', label: 'Preço(un)', type: 'number' as const, required: true },
+        { name: 'codigo_produto', label: 'Código do Produto', type: 'text' as const, required: true },
+        { name: 'categoria', label: 'Categoria', type: 'text' as const, required: true },
+        { name: 'preco', label: 'Preço(un)', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de salvar no banco
-        console.log('Produto atualizado:', { id, ...data });
-        // Aqui você pode fazer uma chamada para a API
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/products');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    const handleDelete = () => {
-        console.log('Excluir produto:', id);
-        // Aqui você pode fazer uma chamada para a API
+    const handleDelete = async () => {
+        try {
+            const res = await fetch(`/api/products/${id}`, {
+                method: 'DELETE',
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            router.push('/products');
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     };
 
-    if (!product) {
-        return (
-            <section>
-                <SetHeader content="Gerenciar Produto" />
-                <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans">
-                    <main className="w-full py-26">
-                        <p>Produto não encontrado.</p>
-                    </main>
-                </div>
-            </section>
-        );
-    }
+    if (!produto) return null;
 
     return (
         <section>
-            <SetHeader content={`Gerenciar Produto: ${product.Nome}`} />
+            <SetHeader content={`Gerenciar Produto: ${produto.nome}`} />
             <div className="flex px-44 w-full min-h-[calc(100vh-10rem)] items-start justify-center bg-background-clean font-sans text-black">
                 <main className="w-full py-26">
                     <GenericForm
                         mode="edit"
                         fields={fields}
-                        initialData={{ nome: product.Nome, codigoProduto: product['Código do Produto'], categoria: product.Categoria, precoUn: product['Preço(un)'] }}
+                        initialData={{ nome: produto.nome, codigo_produto: produto.codigo_produto, categoria: produto.categoria, preco: produto.preco }}
                         onSubmit={handleSubmit}
                         onDelete={handleDelete}
                     />

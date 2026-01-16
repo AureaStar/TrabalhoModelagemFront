@@ -12,7 +12,7 @@ export async function GET() {
         responsavel: true,
       },
       orderBy: {
-        id: 'asc'
+        id: 'desc'
       }
     });
     
@@ -23,5 +23,17 @@ export async function GET() {
       { error: 'Erro ao buscar clientes' },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+    const cliente = await prisma.cliente.create({ data });
+    return NextResponse.json(cliente, { status: 201 });
+  } catch (error: any) {
+    console.error('Erro ao criar cliente:', error);
+    const status = error.code === 'P2002' ? 409 : 500;
+    return NextResponse.json({ error: error.message }, { status });
   }
 }

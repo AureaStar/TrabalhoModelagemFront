@@ -2,14 +2,39 @@
 
 import Table from '@/components/table';
 import SetHeader from '../../components/header/SetHeader';
+import { useEffect ,useState } from 'react';
+
+interface Fornecedor {
+    id: number;
+    nome: string;
+    telefone: string;
+}
 
 export default function SuppliersPage() {
+    const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+
+    useEffect(() => {
+        async function fetchFornecedores() {
+            try {
+                const response = await fetch('/api/suppliers');
+                if (!response.ok) throw new Error('Erro ao buscar fornecedores');
+
+                const data = await response.json();
+                setFornecedores(data);
+            } catch (error) {
+                console.error('Erro ao buscar fornecedores:', error);
+            }
+        }
+
+        fetchFornecedores();
+    }, []);
+    
     const headers = ['Nome', 'Telefone'];
-    const data = [
-        { id: 1, Nome: 'Fornecedor A', Telefone: '123456789' },
-        { id: 2, Nome: 'Fornecedor B', Telefone: '987654321' },
-        { id: 3, Nome: 'Fornecedor C', Telefone: '555666777' },
-    ];
+    const data = fornecedores.map(fornecedor => ({
+        id: fornecedor.id,
+        Nome: fornecedor.nome,
+        Telefone: fornecedor.telefone,
+    }));
 
     return (
         <section>

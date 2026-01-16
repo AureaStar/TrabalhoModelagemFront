@@ -13,10 +13,22 @@ export default function NewCustomerPage() {
         { name: 'responsavel', label: 'Responsável', type: 'text' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de salvar no banco
-        console.log('Novo cliente adicionado:', data);
-        // Aqui você pode fazer uma chamada para a API
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const res = await fetch('/api/customers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            window.history.back();
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
     }
 
     const cancel = () => {
