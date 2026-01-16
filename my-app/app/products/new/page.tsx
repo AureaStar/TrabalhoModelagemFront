@@ -6,22 +6,32 @@ import GenericForm from '@/components/form/GenericForm';
 export default function NewProductPage() {
     const fields = [
         { name: 'nome', label: 'Nome', type: 'text' as const, required: true },
-        { name: 'codigoProduto', label: 'Código do Produto', type: 'text' as const, required: true },
+        { name: 'codigo_produto', label: 'Código do Produto', type: 'text' as const, required: true },
         { name: 'categoria', label: 'Categoria', type: 'select' as const, options: ['Eletrônicos', 'Roupas', 'Alimentos'], required: true },
-        { name: 'precoUn', label: 'Preço(un)', type: 'number' as const, required: true },
+        { name: 'preco', label: 'Preço(un)', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de adicionar no banco
-        console.log('Novo produto:', data);
-        // Aqui você pode fazer uma chamada para a API
-    };
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
 
-    const handleCancel = () => {
-        console.log('Cancelar');
-        // Aqui você pode redirecionar ou algo
-    };
+            const result = await res.json();
 
+            if (!res.ok) throw new Error(result.error);
+
+            window.history.back();
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    const cancel = () => {
+        window.history.back();
+    }
     return (
         <section>
             <SetHeader content="Novo Produto" />
@@ -31,7 +41,7 @@ export default function NewProductPage() {
                         mode="add"
                         fields={fields}
                         onSubmit={handleSubmit}
-                        onCancel={handleCancel}
+                        onCancel={cancel}
                     />
                 </main>
             </div>

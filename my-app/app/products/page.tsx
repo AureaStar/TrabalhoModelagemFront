@@ -2,13 +2,44 @@
 
 import Table from '@/components/table';
 import SetHeader from '../../components/header/SetHeader';
+import { useEffect ,useState } from 'react';
+
+interface Produto {
+    id: number;
+    codigo_produto: string;
+    nome: string;
+    categoria: string;
+    preco: number;
+}
 
 export default function ProductsPage() {
+    const [produtos, setProdutos] = useState<Produto[]>([]);
+    
+    useEffect(() => {
+        async function fetchProdutos() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) throw new Error('Erro ao buscar produtos');
+
+                const data = await response.json();
+                setProdutos(data);
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+            }
+        }
+
+        fetchProdutos();
+    }, []);
+
+
     const headers = ['Nome', 'Código do Produto', 'Categoria', 'Preço(un)'];
-    const data = [
-        { id: 1, Nome: 'Produto X', 'Código do Produto': 'PROD001', Categoria: 'Eletrônicos', 'Preço(un)': 25.00 },
-        { id: 2, Nome: 'Produto Y', 'Código do Produto': 'PROD002', Categoria: 'Roupas', 'Preço(un)': 30.00 },
-    ];
+    const data = produtos.map(produto => ({
+        id: produto.id,
+        Nome: produto.nome,
+        'Código do Produto': produto.codigo_produto,
+        Categoria: produto.categoria,
+        'Preço(un)': produto.preco.toFixed(2),
+    }));
     const categories = ['Eletrônicos', 'Roupas', 'Alimentos'];
 
     return (

@@ -2,25 +2,84 @@
 
 import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
+import { useEffect, useState } from 'react';
 
 export default function NewAcquisitionPage() {
+    const [fornecedores, setFornecedores] = useState<Array<{ id: number; nome: string }>>([]);
+    const [produtos, setProdutos] = useState<Array<{ id: number; nome: string }>>([]);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const [resFornecedores, resProdutos] = await Promise.all([
+                    fetch('/api/suppliers'),
+                    fetch('/api/products')
+                ]);
+                
+                if (!resFornecedores.ok || !resProdutos.ok) {
+                    throw new Error('Erro ao buscar dados');
+                }
+                
+                const fornecedoresData = await resFornecedores.json();
+                const produtosData = await resProdutos.json();
+                
+                setFornecedores(fornecedoresData);
+                setProdutos(produtosData);
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        }
+        fetchData();
+    }, []);
+
+    const fornecedorOptions = fornecedores.map(f => f.nome);
+    const fornecedorMap = fornecedores.reduce((acc, f) => {
+        acc[f.nome] = f.id;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const produtoOptions = produtos.map(p => p.nome);
+    const produtoMap = produtos.reduce((acc, p) => {
+        acc[p.nome] = p.id;
+        return acc;
+    }, {} as Record<string, number>);
+
     const fields = [
-        { name: 'nome', label: 'Nome', type: 'text' as const, required: true },
-        { name: 'fornecedor', label: 'Fornecedor', type: 'select' as const, options: ['Fornecedor A', 'Fornecedor B'], required: true },
-        { name: 'entrada', label: 'Entrada', type: 'text' as const, required: true },
+        { name: 'produto_nome', label: 'Produto', type: 'select' as const, options: produtoOptions, required: true },
+        { name: 'fornecedor_nome', label: 'Fornecedor', type: 'select' as const, options: fornecedorOptions, required: true },
         { name: 'quantidade', label: 'Quantidade', type: 'number' as const, required: true },
-        { name: 'precoUn', label: 'Preço(un)', type: 'number' as const, required: true },
+        { name: 'preco', label: 'Preço(un)', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = (data: Record<string, any>) => {
-        // Simulação de adicionar no banco
-        console.log('Nova aquisição:', data);
-        // Aqui você pode fazer uma chamada para a API
-    };
+    const handleSubmit = async (data: Record<string, any>) => {
+        try {
+            const payload = {
+                id_fornecedor: fornecedorMap[data.fornecedor_nome],
+                quantidade: parseFloat(data.quantidade),
+                preco: parseFloat(data.preco),
+                produtos: {
+                    connect: { id: produtoMap[data.produto_nome] }
+                }
+            };
 
-    const handleCancel = () => {
-        console.log('Cancelar');
-        // Aqui você pode redirecionar ou algo
+            const res = await fetch('/api/acquisitions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.error);
+
+            window.history.back();
+        } catch (error: any) {
+            alert(`Erro: ${error.message}`);
+        }
+    }
+
+    const cancel = () => {
+        window.history.back();
     };
 
     return (
@@ -32,7 +91,7 @@ export default function NewAcquisitionPage() {
                         mode="add"
                         fields={fields}
                         onSubmit={handleSubmit}
-                        onCancel={handleCancel}
+                        onCancel={cancel}
                     />
                 </main>
             </div>
