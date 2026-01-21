@@ -44,6 +44,36 @@ export async function GET(
   }
 }
 
+// export async function PUT(
+//   request: Request,
+//   { params }: { params: Promise<{ id: string }> }
+// ) {
+//   try {
+//     const { id } = await params;
+//     const data = await request.json();
+//     const aquisicao = await prisma.aquisicao.update({
+//       where: { id: parseInt(id) },
+//       data,
+//     });
+
+//     return NextResponse.json(aquisicao);
+//   } catch (error: any) {
+//     console.error('Erro ao atualizar aquisição:', error);
+    
+//     if (error.code === 'P2025') {
+//       return NextResponse.json(
+//         { error: 'Aquisição não encontrada' },
+//         { status: 404 }
+//       );
+//     }
+
+//     return NextResponse.json(
+//       { error: 'Erro ao atualizar aquisição' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -51,28 +81,32 @@ export async function PUT(
   try {
     const { id } = await params;
     const data = await request.json();
+
     const aquisicao = await prisma.aquisicao.update({
       where: { id: parseInt(id) },
-      data,
+      data: {
+        id_fornecedor: data.id_fornecedor,
+        quantidade: data.quantidade,
+        preco: data.preco,
+        desconto: data.desconto,
+        entrada: new Date(data.entrada),
+        observacoes: data.observacoes,
+        produtos: {
+          set: [{ id: data.produtoId }],
+        },
+      },
     });
 
     return NextResponse.json(aquisicao);
-  } catch (error: any) {
-    console.error('Erro ao atualizar aquisição:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Aquisição não encontrada' },
-        { status: 404 }
-      );
-    }
-
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: 'Erro ao atualizar aquisição' },
       { status: 500 }
     );
   }
 }
+
 
 export async function DELETE(
   request: Request,

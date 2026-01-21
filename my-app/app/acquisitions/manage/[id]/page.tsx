@@ -90,14 +90,12 @@ export default function ManageAcquisitionPage() {
         try {
             const payload = {
                 id_fornecedor: Number((e.target as any).fornecedor.value),
-                quantidade: quantidade,
+                quantidade,
                 preco: total,
-                desconto: desconto,
-                entrada: new Date(entrada),
-                observacoes: observacoes,
-                produtos: {
-                    connect: { id: selectedProduto.id }
-                }
+                desconto,
+                entrada,
+                observacoes,
+                produtoId: selectedProduto.id,
             };
 
             const res = await fetch(`/api/acquisitions/${id}`, {
@@ -176,7 +174,7 @@ export default function ManageAcquisitionPage() {
                                     <input
                                         type="number"
                                         value={quantidade}
-                                        onChange={(e) => setQuantidade(Math.max(0, parseFloat(e.target.value.replace(',', '.')) || 0))}
+                                        onChange={(e) => setQuantidade(Number(e.target.value))}
                                         className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                                         required
                                         min="0"
@@ -199,7 +197,8 @@ export default function ManageAcquisitionPage() {
                                 <input
                                     type="number"
                                     value={desconto}
-                                    onChange={(e) => setDesconto(parseFloat(e.target.value.replace(',', '.')) || 0)}
+                                    onChange={(e) => setDesconto(Number(e.target.value))}
+
                                     className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                                     min="0"
                                 />

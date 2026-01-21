@@ -96,7 +96,7 @@ export default function ManageStockPage() {
                             <input
                                 type="number"
                                 value={quantidade}
-                                onChange={(e) => setQuantidade(Math.max(0, parseFloat(e.target.value.replace(',', '.')) || 0))}
+                                onChange={(e) => setQuantidade(Math.max(0, Number(e.target.value) || 0))}
                                 className="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                                 required
                                 min="0"
