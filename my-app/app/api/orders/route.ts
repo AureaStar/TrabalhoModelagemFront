@@ -15,19 +15,7 @@ export async function GET() {
         },
         status: true,
         data: true,
-        preco_total: true, // Atualizado para o novo nome do campo
-        // Adicionado para trazer os produtos do pedido
-        itens: {
-          select: {
-            quantidade: true,
-            preco_unit: true,
-            produto: {
-              select: {
-                nome: true
-              }
-            }
-          }
-        }
+        preco: true
       },
       orderBy: {
         id: 'desc'
@@ -45,34 +33,23 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const data = await request.json(); // Espera { id_cliente, itens: [{id_produto, quantidade, preco}] }
-
-  const result = await prisma.$transaction(async (tx) => {
-    // 1. Cria o Pedido
-    const pedido = await tx.pedido.create({
+  try {
+    const data = await request.json();
+    
+    const pedido = await prisma.pedido.create({
       data: {
-        id_cliente: data.id_cliente,
-        codigo_pedido: `PED-${Date.now()}`,
-        itens: {
-          create: data.itens.map((item: any) => ({
-            id_produto: item.id_produto,
-            quantidade: item.quantidade,
-            preco_unit: item.preco
-          }))
-        }
+        id_cliente: Number(data.id_cliente),
+        codigo_pedido: data.codigo_pedido || `PED-${Date.now()}`,
+        status: data.status || 'Pendente',
+        preco: parseFloat(data.preco || 0)
       }
     });
 
-    // 2. Diminui o estoque para cada item
-    for (const item of data.itens) {
-      await tx.estoque.update({
-        where: { id_produto: item.id_produto },
-        data: { quantidade: { decrement: item.quantidade } }
-      });
-    }
-
-    return pedido;
-  });
-
-  return NextResponse.json(result);
+    return NextResponse.json(pedido, { status: 201 });
+  } catch (error: unknown) {
+    console.error('Erro ao criar pedido:', error);
+    const err = error as { code?: string; message?: string };
+    const status = err.code === 'P2002' ? 409 : 500;
+    return NextResponse.json({ error: err.message }, { status });
+  }
 }

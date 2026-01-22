@@ -54,7 +54,7 @@ export default function ManageStockPage() {
 
             router.push('/stock');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 
@@ -70,7 +70,7 @@ export default function ManageStockPage() {
 
             router.push('/stock');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

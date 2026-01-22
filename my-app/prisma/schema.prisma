@@ -20,72 +20,58 @@ model Cliente {
 }
 
 model Produto {
-  id             Int          @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   nome           String
-  codigo_produto String       @unique
+  codigo_produto String     @unique
   categoria      String
   preco          Float
-  unidade        String       @default("unidades")
-  
-  // Relações
-  estoque        Estoque?     // Saldo atual
-  aquisicoes     Aquisicao[]  // Histórico de entradas
-  itens_pedido   ItemPedido[] // Histórico de saídas
+  id_aquisicao   Int?
+  id_estoque     Int?
+  unidade        String     @default("unidades")
+  Aquisicao      Aquisicao? @relation(fields: [id_aquisicao], references: [id])
+  Estoque        Estoque?   @relation(fields: [id_estoque], references: [id])
 }
 
 model Estoque {
-  id         Int     @id @default(autoincrement())
-  quantidade Float   @default(0)
-  id_produto Int     @unique
-  produto    Produto @relation(fields: [id_produto], references: [id])
+  id         Int       @id @default(autoincrement())
+  nome       String    @default("")
+  categoria  String    @default("")
+  preco      Float     @default(0)
+  quantidade Float
+  Produto    Produto[]
 }
 
 model Aquisicao {
   id            Int        @id @default(autoincrement())
   id_fornecedor Int
-  id_produto    Int
   entrada       DateTime   @default(now())
   quantidade    Float
   preco         Float
   desconto      Float      @default(0)
   observacoes   String?
-  
   fornecedor    Fornecedor @relation(fields: [id_fornecedor], references: [id])
-  produto       Produto    @relation(fields: [id_produto], references: [id])
+  Produto       Produto[]
 }
 
 model Pedido {
-  id            Int          @id @default(autoincrement())
-  codigo_pedido String       @unique
+  id            Int      @id @default(autoincrement())
+  codigo_pedido String   @unique
   id_cliente    Int
-  data          DateTime     @default(now())
-  status        String       @default("Pendente")
-  preco_total   Float        @default(0)
-  
-  cliente       Cliente      @relation(fields: [id_cliente], references: [id])
-  itens         ItemPedido[]
-}
-
-model ItemPedido {
-  id         Int     @id @default(autoincrement())
-  id_pedido  Int
-  id_produto Int
-  quantidade Float
-  preco_unit Float
-  
-  pedido     Pedido  @relation(fields: [id_pedido], references: [id])
-  produto    Produto @relation(fields: [id_produto], references: [id])
+  data          DateTime @default(now())
+  status        String   @default("Pendente")
+  preco         Float    @default(0)
+  cliente       Cliente  @relation(fields: [id_cliente], references: [id])
 }
 
 model Fornecedor {
   id             Int         @id @default(autoincrement())
   nome           String
-  email          String      @default("")
-  cpf            String      @default("")
   telefone       String      @default("")
-  tipo_associado String      @default("")
-  endereco       String      @default("")
   area_atuacao   String      @default("")
+  cpf            String      @default("")
+  email          String      @default("")
+  endereco       String      @default("")
   status         String      @default("Cooperado")
+  tipo_associado String      @default("")
   aquisicoes     Aquisicao[]
 }

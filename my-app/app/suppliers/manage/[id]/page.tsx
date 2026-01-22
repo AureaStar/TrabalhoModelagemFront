@@ -70,7 +70,7 @@ export default function ManageSupplierPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (cpfError || telefoneError) {
-            alert('Corrija os campos com erro antes de enviar.');
+            console.log('Corrija os campos com erro antes de enviar.');
             return;
         }
 
@@ -98,7 +98,7 @@ export default function ManageSupplierPage() {
 
             router.push('/suppliers');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 
@@ -114,7 +114,7 @@ export default function ManageSupplierPage() {
 
             router.push('/suppliers');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

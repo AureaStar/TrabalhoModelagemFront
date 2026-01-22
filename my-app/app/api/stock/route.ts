@@ -6,15 +6,10 @@ export async function GET() {
     const estoques = await prisma.estoque.findMany({
       select: {
         id: true,
+        nome: true,
+        categoria: true,
+        preco: true,
         quantidade: true,
-        produtos: {
-            select: {
-                id: true,
-                nome: true,
-                categoria: true,
-                preco: true,
-            }
-        }
       },
       orderBy: {
         id: 'desc'
@@ -36,9 +31,10 @@ export async function POST(request: Request) {
     const data = await request.json();
     const estoque = await prisma.estoque.create({ data });
     return NextResponse.json(estoque, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao criar estoque:', error);
-    const status = error.code === 'P2002' ? 409 : 500;
-    return NextResponse.json({ error: error.message }, { status });
+    const err = error as { code?: string; message?: string };
+    const status = err.code === 'P2002' ? 409 : 500;
+    return NextResponse.json({ error: err.message }, { status });
   }
 }

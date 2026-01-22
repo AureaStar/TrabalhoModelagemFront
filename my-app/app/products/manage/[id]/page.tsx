@@ -57,7 +57,7 @@ export default function ManageProductPage() {
 
             router.push('/products');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 
@@ -73,7 +73,7 @@ export default function ManageProductPage() {
 
             router.push('/products');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

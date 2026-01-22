@@ -97,7 +97,7 @@ export default function ManageCustomerPage() {
         const cleanPhone = telefone.replace(/\D/g, '');
 
         if (cleanCNPJ.length !== 14) {
-            alert('CNPJ inválido. O CNPJ deve conter 14 dígitos.');
+            console.log('CNPJ inválido. O CNPJ deve conter 14 dígitos.');
             return;
         }
 
@@ -124,7 +124,7 @@ export default function ManageCustomerPage() {
 
             router.push('/customers');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 
@@ -143,7 +143,7 @@ export default function ManageCustomerPage() {
 
             router.push('/customers');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

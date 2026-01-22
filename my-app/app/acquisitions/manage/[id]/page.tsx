@@ -110,7 +110,7 @@ export default function ManageAcquisitionPage() {
 
             router.push('/acquisitions');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.error(`Erro: ${error.message}`);
         }
     };
 
@@ -126,7 +126,7 @@ export default function ManageAcquisitionPage() {
 
             router.push('/acquisitions');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+           console.error(error);
         }
     };
 

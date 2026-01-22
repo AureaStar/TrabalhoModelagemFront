@@ -50,7 +50,7 @@ export default function NewCustomerPage() {
 
         // Validação
         if (cleanCNPJ.length !== 14) {
-            alert('CNPJ inválido. Digite os 14 números.');
+            console.log('CNPJ inválido. Digite os 14 números.');
             return;
         }
 
@@ -76,7 +76,7 @@ export default function NewCustomerPage() {
 
             router.push('/customers');
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

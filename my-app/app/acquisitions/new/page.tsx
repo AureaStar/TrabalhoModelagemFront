@@ -64,22 +64,22 @@ export default function NewAcquisitionPage() {
         const fornecedorId = fornecedorSelect?.value;
 
         if (!fornecedorId) {
-            alert('Selecione um fornecedor');
+            console.log('Selecione um fornecedor');
             return;
         }
 
         if (!selectedProduto) {
-            alert('Selecione um produto');
+            console.log('Selecione um produto');
             return;
         }
 
         if (quantidade <= 0) {
-            alert('A quantidade deve ser maior que zero');
+            console.log('A quantidade deve ser maior que zero');
             return;
         }
 
         if (!entrada) {
-            alert('Selecione uma data de aquisição');
+            console.log('Selecione uma data de aquisição');
             return;
         }
 
@@ -111,12 +111,12 @@ export default function NewAcquisitionPage() {
             }
 
             // Sucesso - redirecionar
-            alert('Aquisição registrada com sucesso!');
+            console.log('Aquisição registrada com sucesso!');
             window.location.href = '/acquisitions';
 
         } catch (error: any) {
             console.error('❌ Erro completo:', error);
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     };
 

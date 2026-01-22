@@ -5,12 +5,9 @@ import SetHeader from '../../components/header/SetHeader';
 import { useEffect ,useState } from 'react';
 interface EstoqueItem {
     id: number;
-    produtos: Array<{
-        id: number;
-        nome: string;
-        categoria: string;
-        preco: number;
-    }>;
+    nome: string;
+    categoria: string;
+    preco: number;
     quantidade: number;
 }
 
@@ -36,10 +33,10 @@ export default function StockPage() {
     const headers = ['Nome', 'Categoria', 'Quantidade', 'Preço(un)'];
     const data = estoques.map(estoque => ({
         id: estoque.id,
-        Nome: estoque.produtos.map(p => p.nome).join(', '),
-        Categoria: estoque.produtos.map(p => p.categoria).join(', '),
+        Nome: estoque.nome || '-',
+        Categoria: estoque.categoria || '-',
         Quantidade: estoque.quantidade,
-        'Preço(un)': estoque.produtos.map(p => p.preco).join(', '),
+        'Preço(un)': estoque.preco || '-',
     }))
 
     return (

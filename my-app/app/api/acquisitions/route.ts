@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   try {
     const aquisicoes = await prisma.aquisicao.findMany({
-      include: {  // Mudar de select para include para mais facilidade
-        produto: {
+      include: {
+        Produto: {
           select: {
             id: true,
             nome: true,
@@ -83,7 +83,6 @@ export async function POST(request: Request) {
       const novaAquisicao = await tx.aquisicao.create({
         data: {
           id_fornecedor: Number(data.id_fornecedor),
-          id_produto: Number(data.id_produto),
           quantidade: parseFloat(data.quantidade),
           preco: parseFloat(data.preco), // Preço UNITÁRIO
           desconto: parseFloat(data.desconto || 0),
@@ -94,19 +93,41 @@ export async function POST(request: Request) {
 
       console.log("✅ Aquisição criada:", novaAquisicao.id);
 
-      // 4. Upsert no Estoque
-      const estoqueAtualizado = await tx.estoque.upsert({
-        where: { id_produto: Number(data.id_produto) },
-        update: {
-          quantidade: { increment: parseFloat(data.quantidade) }
-        },
-        create: {
-          id_produto: Number(data.id_produto),
-          quantidade: parseFloat(data.quantidade)
-        },
-      });
+      // 4. Criar ou atualizar o Estoque e conectar o Produto
+      // Verifica se o produto já tem estoque associado
+      let estoqueAtualizado;
+      if (produtoExiste.id_estoque) {
+        // Produto já tem estoque - atualiza a quantidade
+        estoqueAtualizado = await tx.estoque.update({
+          where: { id: produtoExiste.id_estoque },
+          data: {
+            quantidade: { increment: parseFloat(data.quantidade) }
+          }
+        });
+      } else {
+        // Produto não tem estoque - cria um novo com os dados do produto
+        estoqueAtualizado = await tx.estoque.create({
+          data: {
+            nome: produtoExiste.nome,
+            categoria: produtoExiste.categoria,
+            preco: produtoExiste.preco,
+            quantidade: parseFloat(data.quantidade)
+          }
+        });
+      }
 
       console.log("✅ Estoque atualizado:", estoqueAtualizado.id);
+
+      // 5. Atualizar o Produto para conectá-lo à Aquisição e ao Estoque
+      await tx.produto.update({
+        where: { id: Number(data.id_produto) },
+        data: {
+          id_aquisicao: novaAquisicao.id,
+          id_estoque: estoqueAtualizado.id
+        }
+      });
+
+      console.log("✅ Produto atualizado com aquisição e estoque");
 
       return {
         aquisicao: novaAquisicao,
@@ -117,28 +138,29 @@ export async function POST(request: Request) {
     console.log("🎉 Transação concluída com sucesso!");
     return NextResponse.json(transaction, { status: 201 });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; meta?: unknown; stack?: string };
     console.error('❌ ERRO DETALHADO:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta,
-      stack: error.stack
+      message: err.message,
+      code: err.code,
+      meta: err.meta,
+      stack: err.stack
     });
     
     // Mensagens de erro mais específicas
     let errorMessage = 'Erro ao processar aquisição';
     let statusCode = 500;
     
-    if (error.message.includes('Fornecedor') || error.message.includes('Produto')) {
-      errorMessage = error.message;
+    if (err.message?.includes('Fornecedor') || err.message?.includes('Produto')) {
+      errorMessage = err.message;
       statusCode = 404;
-    } else if (error.code === 'P2002') {
+    } else if (err.code === 'P2002') {
       errorMessage = 'Já existe um registro com esses dados';
       statusCode = 400;
-    } else if (error.code === 'P2003') {
+    } else if (err.code === 'P2003') {
       errorMessage = 'Referência inválida (fornecedor ou produto não existe)';
       statusCode = 400;
-    } else if (error.code === 'P2025') {
+    } else if (err.code === 'P2025') {
       errorMessage = 'Registro não encontrado para atualização';
       statusCode = 404;
     }
@@ -146,8 +168,8 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         error: errorMessage, 
-        details: error.message,
-        code: error.code 
+        details: err.message,
+        code: err.code 
       }, 
       { status: statusCode }
     );

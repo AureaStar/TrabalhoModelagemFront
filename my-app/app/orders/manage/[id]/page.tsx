@@ -76,7 +76,7 @@ export default function ManageOrderPage() {
 
                 // PREENCHER CARRINHO COM PRODUTOS CADASTRADOS
                 if (order.itens && order.itens.length > 0) {
-                    const savedItems = order.itens.map((item: any) => {
+                    const savedItems = order.itens.map((item: { id_produto: number; quantidade: number }) => {
                         const productObj = products.find(p => p.id === item.id_produto);
                         if (productObj) {
                             return {
@@ -85,7 +85,7 @@ export default function ManageOrderPage() {
                             };
                         }
                         return null;
-                    }).filter((item: any) => item !== null);
+                    }).filter((item: CartItem | null): item is CartItem => item !== null);
 
                     setCart(savedItems);
                 }
@@ -164,8 +164,9 @@ export default function ManageOrderPage() {
 
             if (!res.ok) throw new Error('Erro ao atualizar');
             router.back();
-        } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Erro desconhecido';
+            console.log(`Erro: ${message}`);
         }
     };
 
@@ -232,7 +233,7 @@ export default function ManageOrderPage() {
                     {/* Carrinho */}
                     <div className="w-1/2 bg-white p-4 rounded-lg shadow">
                         <h2 className="text-xl font-bold mb-4">Carrinho</h2>
-                        <div className="overflow-y-auto max-h-96 min-h-[10rem]">
+                        <div className="overflow-y-auto max-h-96 min-h-40">
                             {cart.length === 0 ? (
                                 <p className="text-gray-400">Carregando itens do pedido...</p>
                             ) : (

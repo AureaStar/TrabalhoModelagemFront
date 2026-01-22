@@ -151,7 +151,7 @@ export default function NewOrderPage() {
 
             window.history.back();
         } catch (error: any) {
-            alert(`Erro: ${error.message}`);
+            console.log(`Erro: ${error.message}`);
         }
     }
 
