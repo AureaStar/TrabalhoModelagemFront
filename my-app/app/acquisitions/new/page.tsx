@@ -31,14 +31,14 @@ export default function NewAcquisitionPage() {
                     fetch('/api/suppliers'),
                     fetch('/api/products')
                 ]);
-                
+
                 if (!resFornecedores.ok || !resProdutos.ok) {
                     throw new Error('Erro ao buscar dados');
                 }
-                
+
                 const fornecedoresData = await resFornecedores.json();
                 const produtosData = await resProdutos.json();
-                
+
                 setFornecedores(fornecedoresData);
                 setProdutos(produtosData);
             } catch (error) {
@@ -58,20 +58,43 @@ export default function NewAcquisitionPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedProduto) return;
+
+        // Validação mais robusta
+        const fornecedorSelect = (e.target as HTMLFormElement).elements.namedItem('fornecedor') as HTMLSelectElement;
+        const fornecedorId = fornecedorSelect?.value;
+
+        if (!fornecedorId) {
+            alert('Selecione um fornecedor');
+            return;
+        }
+
+        if (!selectedProduto) {
+            alert('Selecione um produto');
+            return;
+        }
+
+        if (quantidade <= 0) {
+            alert('A quantidade deve ser maior que zero');
+            return;
+        }
+
+        if (!entrada) {
+            alert('Selecione uma data de aquisição');
+            return;
+        }
 
         try {
             const payload = {
-                id_fornecedor: Number((e.target as any).fornecedor.value),
+                id_fornecedor: Number(fornecedorId),
+                id_produto: selectedProduto.id,
                 quantidade: quantidade,
-                preco: total, // total value
+                preco: selectedProduto.preco, // Preço UNITÁRIO
                 desconto: desconto,
-                entrada: new Date(entrada),
+                entrada: entrada, // Já está no formato YYYY-MM-DD
                 observacoes: observacoes,
-                produtos: {
-                    connect: { id: selectedProduto.id }
-                }
             };
+
+            console.log("📤 Enviando payload:", payload);
 
             const res = await fetch('/api/acquisitions', {
                 method: 'POST',
@@ -80,11 +103,19 @@ export default function NewAcquisitionPage() {
             });
 
             const result = await res.json();
+            console.log("📥 Resposta do servidor:", result);
 
-            if (!res.ok) throw new Error(result.error);
+            if (!res.ok) {
+                const errorMsg = result.details || result.error || `Erro ${res.status}`;
+                throw new Error(errorMsg);
+            }
 
-            window.history.back();
+            // Sucesso - redirecionar
+            alert('Aquisição registrada com sucesso!');
+            window.location.href = '/acquisitions';
+
         } catch (error: any) {
+            console.error('❌ Erro completo:', error);
             alert(`Erro: ${error.message}`);
         }
     };
@@ -140,6 +171,15 @@ export default function NewAcquisitionPage() {
                                     />
                                     <span className="ml-2 text-gray-600">{selectedProduto?.unidade || ''}</span>
                                 </div>
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Preço Unitário (R$)</label>
+                                <input
+                                    type="number"
+                                    value={selectedProduto ? selectedProduto.preco.toFixed(2) : '0.00'}
+                                    readOnly
+                                    className="w-full bg-gray-200 border border-gray-300 rounded-lg p-2"
+                                />
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Data de Aquisição</label>

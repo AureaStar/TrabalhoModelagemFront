@@ -5,33 +5,24 @@ import SetHeader from '@/components/header/SetHeader';
 import GenericForm from '@/components/form/GenericForm';
 import { useEffect } from 'react';
 
-interface Product {
+interface Produto {
     id: number;
-    name: string;
-    category: string;
-    price: number;
+    codigo_produto: string;
+    nome: string;
+    categoria: string;
+    preco: number;
 }
 
 interface CartItem {
-    product: Product;
+    product: Produto;
     quantity: number;
 }
 
-const products: Product[] = [
-    { id: 1, name: 'Produto A', category: 'Categoria 1', price: 10.00 },
-    { id: 2, name: 'Produto B', category: 'Categoria 1', price: 15.00 },
-    { id: 3, name: 'Produto C', category: 'Categoria 2', price: 20.00 },
-    { id: 4, name: 'Produto D', category: 'Categoria 2', price: 25.00 },
-    { id: 5, name: 'Produto E', category: 'Categoria 3', price: 30.00 },
-    { id: 6, name: 'Produto F', category: 'Categoria 3', price: 35.00 },
-    { id: 7, name: 'Produto G', category: 'Categoria 1', price: 40.00 },
-    { id: 8, name: 'Produto H', category: 'Categoria 2', price: 45.00 },
-    { id: 9, name: 'Produto I', category: 'Categoria 3', price: 50.00 },
-];
 
-const categories = Array.from(new Set(products.map(p => p.category)));
 
 export default function NewOrderPage() {
+    const [products, setProducts] = useState<Produto[]>([]);
+    const categories = Array.from(new Set(products.map(p => p.categoria)));
     const [clientes, setClientes] = useState<Array<{ id: number; instituicao: string }>>([]);
 
     useEffect(() => {
@@ -47,6 +38,22 @@ export default function NewOrderPage() {
             }
         }
         fetchClientes();
+    }, []);
+
+    useEffect(() => {
+        async function fetchProdutos() {
+            try {
+                const res = await fetch('/api/products');
+                if (!res.ok) throw new Error('Erro ao buscar produtos');
+
+                const data = await res.json();
+                setProducts(data);
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+            }
+        }
+
+        fetchProdutos();
     }, []);
 
     console.log('Estado clientes:', clientes);
@@ -76,20 +83,23 @@ export default function NewOrderPage() {
     const [desconto, setDesconto] = useState(0);
 
     const filteredProducts = useMemo(() => {
-        let filtered = products;
-        if (searchQuery) {
-            filtered = filtered.filter(p =>
-                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.category.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-        if (selectedCategory) {
-            filtered = filtered.filter(p => p.category === selectedCategory);
-        }
-        return filtered;
-    }, [searchQuery, selectedCategory]);
+    let filtered = products;
 
-    const addToCart = (product: Product) => {
+    if (searchQuery) {
+        filtered = filtered.filter(p =>
+            p.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
+
+    if (selectedCategory) {
+        filtered = filtered.filter(p => p.categoria === selectedCategory);
+    }
+
+    return filtered;
+}, [searchQuery, selectedCategory, products]);
+
+    const addToCart = (product: Produto) => {
         setCart(prev => {
             const existing = prev.find(item => item.product.id === product.id);
             if (existing) {
@@ -118,7 +128,7 @@ export default function NewOrderPage() {
         setCart(prev => prev.filter(item => item.product.id !== id));
     };
 
-    const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const totalPrice = cart.reduce((sum, item) => sum + item.product.preco * item.quantity, 0);
 
     const handleSubmit = async (data: Record<string, any>) => {
         try {
@@ -126,7 +136,7 @@ export default function NewOrderPage() {
                 codigo_pedido: data.codigo_pedido,
                 id_cliente: clienteMap[data.cliente_nome],
                 status: data.status,
-                preco: parseFloat(data.preco.replace(',', '.'))
+                preco: parseFloat(data.preco)
             };
 
             const res = await fetch('/api/orders', {
@@ -194,13 +204,13 @@ export default function NewOrderPage() {
                                 <tbody>
                                     {filteredProducts.map(product => (
                                         <tr key={product.id}>
-                                            <td className="border border-gray-300 p-2">{product.name}</td>
-                                            <td className="border border-gray-300 p-2">{product.category}</td>
-                                            <td className="border border-gray-300 p-2">R$ {product.price.toFixed(2)}</td>
+                                            <td className="border border-gray-300 p-2">{product.nome}</td>
+                                            <td className="border border-gray-300 p-2">{product.categoria}</td>
+                                            <td className="border border-gray-300 p-2">R$ {product.preco.toFixed(2)}</td>
                                             <td className="border border-gray-300 p-2 text-center">
                                                 <button
                                                     onClick={() => addToCart(product)}
-                                                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                                                    className="bg-gray-400 text-white px-3 py-1 rounded-full hover:bg-gray-600"
                                                 >
                                                     +
                                                 </button>
@@ -223,8 +233,8 @@ export default function NewOrderPage() {
                                     {cart.map(item => (
                                         <li key={item.product.id} className="flex justify-between items-center p-2 border rounded">
                                             <div>
-                                                <p className="font-semibold">{item.product.name}</p>
-                                                <p className="text-sm text-black">R$ {item.product.price.toFixed(2)} cada</p>
+                                                <p className="font-semibold">{item.product.nome}</p>
+                                                <p className="text-sm text-black">R$ {item.product.preco.toFixed(2)} cada</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button
@@ -269,7 +279,7 @@ export default function NewOrderPage() {
             {isModalOpen && (
                 <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white p-4 rounded-lg shadow border border-gray-300 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold mb-4">Conferir Pedido</h2>
+                        <h2 className="text-xl font-bold mb-4 text-black">Conferir Pedido</h2>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-semibold text-black">Código do Pedido</label>
@@ -334,7 +344,7 @@ export default function NewOrderPage() {
                                 <ul className="space-y-1">
                                     {cart.map(item => (
                                         <li key={item.product.id} className="text-sm text-black">
-                                            {item.product.name} - {item.quantity} x R$ {item.product.price.toFixed(2)} = R$ {(item.product.price * item.quantity).toFixed(2)}
+                                            {item.product.nome} - {item.quantity} x R$ {item.product.preco.toFixed(2)} = R$ {(item.product.preco * item.quantity).toFixed(2)}
                                         </li>
                                     ))}
                                 </ul>

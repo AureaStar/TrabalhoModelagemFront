@@ -2,13 +2,14 @@
 
 import Table from '@/components/table';
 import SetHeader from '../../components/header/SetHeader';
-import { useEffect ,useState } from 'react';
+import { useEffect, useState } from 'react';
+
 interface Aquisicao {
   id: number;
-  produtos: Array<{
+  produto: { 
     id: number;
     nome: string;
-  }>;
+  };
   fornecedor: {
     id: number;
     nome: string;
@@ -16,11 +17,12 @@ interface Aquisicao {
   entrada: string;
   quantidade: number;
   preco: number;
-} 
+}
 
 export default function AcquisitionsPage() {
   const [aquisicoes, setAquisicoes] = useState<Aquisicao[]>([]);
-  
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     async function fetchAquisicoes() {
       try {
@@ -31,6 +33,8 @@ export default function AcquisitionsPage() {
         setAquisicoes(data);
       } catch (error) {
         console.error('Erro ao buscar aquisições:', error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -38,14 +42,19 @@ export default function AcquisitionsPage() {
   }, []);
 
   const headers = ['Nome', 'Fornecedor', 'Entrada', 'Quantidade', 'Preço(un)'];
+
+  // 2. Mapeamento corrigido para acessar o produto único
   const data = aquisicoes.map(aquisicao => ({
     id: aquisicao.id,
-    Nome: aquisicao.produtos.map(p => p.nome).join(', '),
-    Fornecedor: aquisicao.fornecedor.nome,
-    Entrada: new Date(aquisicao.entrada).toLocaleDateString(),
+    // Não precisa mais de .map ou .join, pois é um único produto
+    Nome: aquisicao.produto?.nome || 'Produto não encontrado', 
+    Fornecedor: aquisicao.fornecedor?.nome || 'Sem fornecedor',
+    Entrada: new Date(aquisicao.entrada).toLocaleDateString('pt-BR'),
     Quantidade: aquisicao.quantidade,
     'Preço(un)': aquisicao.preco.toFixed(2),
   }));
+
+  if (loading) return <div className="p-10 text-center">Carregando...</div>;
 
   return (
     <section>
